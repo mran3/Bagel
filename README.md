@@ -11,7 +11,7 @@
         <img src="https://img.shields.io/github/release/yagiz/Bagel.svg" /></a>
 </p>
 
-Bagel is a little native iOS network debugger. It's not a proxy debugger so you don't have to mess around with certificates, proxy settings etc. As long as your iOS devices and your Mac are in the same network, you can view the network traffic of your apps seperated by the devices or simulators.
+Trying to make this work with SPM. Bagel is a little native iOS network debugger. It's not a proxy debugger so you don't have to mess around with certificates, proxy settings etc. As long as your iOS devices and your Mac are in the same network, you can view the network traffic of your apps seperated by the devices or simulators.
 
 ## Preview
 ![Bagel](https://github.com/yagiz/Bagel/blob/develop/assets/screenshot.png?raw=true)
