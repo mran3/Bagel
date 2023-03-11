@@ -57,15 +57,24 @@ static NSString* queueId = @"com.yagiz.bagel.injectController";
     dispatch_async(_queue, block);
 }
 
-- (BagelRequestCarrier*)carrierWithURLSessionTask:(NSURLSessionTask*)urlSessionTask
-{
+- (BagelRequestCarrier*)existingCarrierWithURLSessionTask:(NSURLSessionTask*)urlSessionTask {
     for (BagelRequestCarrier* carrier in self.carriers) {
-        if (carrier.urlSessionTask == urlSessionTask) {
+        if (carrier.urlSessionTask.taskIdentifier == urlSessionTask.taskIdentifier) {
             return carrier;
         }
     }
 
-    BagelRequestCarrier* carrier = [[BagelRequestCarrier alloc] initWithTask:urlSessionTask];
+    return nil;
+}
+
+- (BagelRequestCarrier*)carrierWithURLSessionTask:(NSURLSessionTask*)urlSessionTask
+{
+    BagelRequestCarrier* carrier = [self existingCarrierWithURLSessionTask:urlSessionTask];
+    if (carrier != nil) {
+        return carrier;
+    }
+    
+    carrier = [[BagelRequestCarrier alloc] initWithTask:urlSessionTask];
     [self.carriers addObject:carrier];
 
     return carrier;
@@ -121,7 +130,10 @@ static NSString* queueId = @"com.yagiz.bagel.injectController";
 
     [self performBlock:^{
 
-        BagelRequestCarrier* carrier = [self carrierWithURLSessionTask:dataTask];
+        BagelRequestCarrier* carrier = [self existingCarrierWithURLSessionTask:dataTask];
+        if (carrier == nil) {
+            return;
+        }
 
         [carrier appenData:copiedData];
 
@@ -134,7 +146,10 @@ static NSString* queueId = @"com.yagiz.bagel.injectController";
 {
     [self performBlock:^{
 
-        BagelRequestCarrier* carrier = [self carrierWithURLSessionTask:dataTask];
+        BagelRequestCarrier* carrier = [self existingCarrierWithURLSessionTask:dataTask];
+        if (carrier == nil) {
+            return;
+        }
 
         carrier.error = error;
         [carrier complete];
