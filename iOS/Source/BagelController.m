@@ -36,6 +36,7 @@ static NSString* queueId = @"com.yagiz.bagel.injectController";
         
         _queue = dispatch_queue_create((const char*)[queueId UTF8String], DISPATCH_QUEUE_SERIAL);
         self.carriers = [NSMutableArray new];
+        self.sentRequestHashes = [NSMutableArray new];
         
         self.configuration = configuration;
 
@@ -59,7 +60,7 @@ static NSString* queueId = @"com.yagiz.bagel.injectController";
 
 - (BagelRequestCarrier*)existingCarrierWithURLSessionTask:(NSURLSessionTask*)urlSessionTask {
     for (BagelRequestCarrier* carrier in self.carriers) {
-        if (carrier.urlSessionTask.taskIdentifier == urlSessionTask.taskIdentifier) {
+        if (carrier.urlSessionTask.originalRequest.hash == urlSessionTask.originalRequest.hash) {
             return carrier;
         }
     }
@@ -130,7 +131,7 @@ static NSString* queueId = @"com.yagiz.bagel.injectController";
 
     [self performBlock:^{
 
-        BagelRequestCarrier* carrier = [self existingCarrierWithURLSessionTask:dataTask];
+        BagelRequestCarrier* carrier = [self carrierWithURLSessionTask:dataTask];
         if (carrier == nil) {
             return;
         }
@@ -146,7 +147,7 @@ static NSString* queueId = @"com.yagiz.bagel.injectController";
 {
     [self performBlock:^{
 
-        BagelRequestCarrier* carrier = [self existingCarrierWithURLSessionTask:dataTask];
+        BagelRequestCarrier* carrier = [self carrierWithURLSessionTask:dataTask];
         if (carrier == nil) {
             return;
         }
@@ -239,6 +240,18 @@ static NSString* queueId = @"com.yagiz.bagel.injectController";
         }
     }
     
+    if (carrier.urlSessionTask) {
+        id hash = @(carrier.urlSessionTask.originalRequest.hash + carrier.urlSessionTask.taskIdentifier);
+        if ([self.sentRequestHashes containsObject:hash]) {
+            return;
+        }
+
+        [self.sentRequestHashes addObject:hash];
+        if (self.sentRequestHashes.count > 50) {
+            [self.sentRequestHashes removeObjectAtIndex: 0];
+        }
+    }
+
     [self.browser sendPacket:packet];
 }
 
