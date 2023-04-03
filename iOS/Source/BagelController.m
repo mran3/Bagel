@@ -242,7 +242,9 @@ static NSString* queueId = @"com.yagiz.bagel.injectController";
     
     if (carrier.urlSessionTask) {
         id hash = @(carrier.urlSessionTask.originalRequest.hash + carrier.urlSessionTask.taskIdentifier);
+        packet.packetId = [NSString stringWithFormat: @"%@", hash];
         if ([self.sentRequestHashes containsObject:hash]) {
+            [self.browser sendPacket:packet];
             return;
         }
 
