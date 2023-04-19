@@ -40,6 +40,7 @@
 @property (nonatomic, strong) BagelURLConnectionInjector* urlConnectionInjector;
 
 @property (nonatomic, strong) NSMutableArray<BagelRequestCarrier*>* carriers;
+@property (nonatomic, strong) NSMutableArray<NSNumber*>* sentRequestHashes;
 
 - (instancetype)initWithConfiguration:(BagelConfiguration*)configuration;
 

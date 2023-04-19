@@ -33,6 +33,11 @@ FOUNDATION_EXPORT const unsigned char BagelVersionString[];
 #import "BagelConfiguration.h"
 #import "BagelDeviceModel.h"
 #import "BagelProjectModel.h"
+#import "BagelBrowser.h"
+#import "BagelController.h"
+#import "BagelRequestCarrier.h"
+#import "BagelURLConnectionInjector.h"
+#import "BagelUtility.h"
 
 @interface Bagel : NSObject
 

@@ -36,6 +36,7 @@ static NSString* queueId = @"com.yagiz.bagel.injectController";
         
         _queue = dispatch_queue_create((const char*)[queueId UTF8String], DISPATCH_QUEUE_SERIAL);
         self.carriers = [NSMutableArray new];
+        self.sentRequestHashes = [NSMutableArray new];
         
         self.configuration = configuration;
 
@@ -57,15 +58,24 @@ static NSString* queueId = @"com.yagiz.bagel.injectController";
     dispatch_async(_queue, block);
 }
 
-- (BagelRequestCarrier*)carrierWithURLSessionTask:(NSURLSessionTask*)urlSessionTask
-{
+- (BagelRequestCarrier*)existingCarrierWithURLSessionTask:(NSURLSessionTask*)urlSessionTask {
     for (BagelRequestCarrier* carrier in self.carriers) {
-        if (carrier.urlSessionTask == urlSessionTask) {
+        if (carrier.urlSessionTask.originalRequest.hash == urlSessionTask.originalRequest.hash) {
             return carrier;
         }
     }
 
-    BagelRequestCarrier* carrier = [[BagelRequestCarrier alloc] initWithTask:urlSessionTask];
+    return nil;
+}
+
+- (BagelRequestCarrier*)carrierWithURLSessionTask:(NSURLSessionTask*)urlSessionTask
+{
+    BagelRequestCarrier* carrier = [self existingCarrierWithURLSessionTask:urlSessionTask];
+    if (carrier != nil) {
+        return carrier;
+    }
+    
+    carrier = [[BagelRequestCarrier alloc] initWithTask:urlSessionTask];
     [self.carriers addObject:carrier];
 
     return carrier;
@@ -122,6 +132,9 @@ static NSString* queueId = @"com.yagiz.bagel.injectController";
     [self performBlock:^{
 
         BagelRequestCarrier* carrier = [self carrierWithURLSessionTask:dataTask];
+        if (carrier == nil) {
+            return;
+        }
 
         [carrier appenData:copiedData];
 
@@ -135,6 +148,9 @@ static NSString* queueId = @"com.yagiz.bagel.injectController";
     [self performBlock:^{
 
         BagelRequestCarrier* carrier = [self carrierWithURLSessionTask:dataTask];
+        if (carrier == nil) {
+            return;
+        }
 
         carrier.error = error;
         [carrier complete];
@@ -224,6 +240,20 @@ static NSString* queueId = @"com.yagiz.bagel.injectController";
         }
     }
     
+    if (carrier.urlSessionTask) {
+        id hash = @(carrier.urlSessionTask.originalRequest.hash + carrier.urlSessionTask.taskIdentifier);
+        packet.packetId = [NSString stringWithFormat: @"%@", hash];
+        if ([self.sentRequestHashes containsObject:hash]) {
+            [self.browser sendPacket:packet];
+            return;
+        }
+
+        [self.sentRequestHashes addObject:hash];
+        if (self.sentRequestHashes.count > 50) {
+            [self.sentRequestHashes removeObjectAtIndex: 0];
+        }
+    }
+
     [self.browser sendPacket:packet];
 }
 

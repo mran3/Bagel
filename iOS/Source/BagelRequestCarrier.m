@@ -89,7 +89,7 @@
         requestInfo.requestHeaders = self.self.urlSessionTask.currentRequest.allHTTPHeaderFields;
         requestInfo.requestBody = self.self.urlSessionTask.originalRequest.HTTPBody;
         requestInfo.requestMethod = self.self.urlSessionTask.originalRequest.HTTPMethod;
-        
+        self.response = self.urlSessionTask.response;
     }else if (self.urlConnection) {
         
         requestInfo.url = self.urlConnection.originalRequest.URL;
